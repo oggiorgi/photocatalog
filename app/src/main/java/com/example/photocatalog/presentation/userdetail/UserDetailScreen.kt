@@ -15,6 +15,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.photocatalog.domain.models.User
 import com.example.photocatalog.domain.usecases.GetUserDetailUseCase
+import com.example.photocatalog.domain.usecases.LogoutUseCase
 import com.example.photocatalog.utils.NetworkResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +24,7 @@ import kotlinx.coroutines.launch
 // ViewModel для экрана деталей пользователя
 class UserDetailViewModel(
     private val getUserDetailUseCase: GetUserDetailUseCase,
+    private val logoutUseCase: LogoutUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -46,17 +48,25 @@ class UserDetailViewModel(
             }
         }
     }
+
+    fun logout() {
+        viewModelScope.launch {
+            logoutUseCase()
+        }
+    }
 }
 
 // Factory для создания ViewModel
 class UserDetailViewModelFactory(
     private val getUserDetailUseCase: GetUserDetailUseCase,
+    private val logoutUseCase: LogoutUseCase,
     private val userId: Int
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
         return UserDetailViewModel(
             getUserDetailUseCase = getUserDetailUseCase,
+            logoutUseCase = logoutUseCase,
             savedStateHandle = SavedStateHandle(mapOf("userId" to userId))
         ) as T
     }
@@ -67,11 +77,11 @@ class UserDetailViewModelFactory(
 fun UserDetailScreen(
     navController: NavController,
     userId: Int,
-    onLogout: () -> Unit,
-    getUserDetailUseCase: GetUserDetailUseCase
+    getUserDetailUseCase: GetUserDetailUseCase,
+    logoutUseCase: LogoutUseCase
 ) {
     val viewModel: UserDetailViewModel = viewModel(
-        factory = UserDetailViewModelFactory(getUserDetailUseCase, userId)
+        factory = UserDetailViewModelFactory(getUserDetailUseCase, logoutUseCase, userId)
     )
 
     val userState by viewModel.userState.collectAsState()
@@ -87,7 +97,16 @@ fun UserDetailScreen(
 
             is NetworkResult.Success -> {
                 val user = (userState as NetworkResult.Success).data
-                UserDetailContent(user = user, onLogout = onLogout)
+                UserDetailContent(
+                    user = user,
+                    onLogout = {
+                        viewModel.logout()
+                        navController.navigate("login") {
+                            popUpTo("users_list") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
 
             is NetworkResult.Error -> {
