@@ -21,9 +21,9 @@ fun LoginScreen(
 ) {
     var username by remember { mutableStateOf("emilys") }
     var password by remember { mutableStateOf("emilyspass") }
-    
+
     val loginState by viewModel.loginState.collectAsState()
-    
+
     LaunchedEffect(loginState) {
         if (loginState is NetworkResult.Success) {
             navController.navigate("users_list") {
@@ -32,7 +32,7 @@ fun LoginScreen(
             viewModel.resetState()
         }
     }
-    
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -46,9 +46,9 @@ fun LoginScreen(
             label = { Text("Username") },
             modifier = Modifier.fillMaxWidth()
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -57,9 +57,9 @@ fun LoginScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth()
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         Button(
             onClick = { viewModel.login(username, password) },
             modifier = Modifier.fillMaxWidth(),
@@ -71,7 +71,7 @@ fun LoginScreen(
                 Text("Login")
             }
         }
-        
+
         when (loginState) {
             is NetworkResult.Error -> {
                 Text(

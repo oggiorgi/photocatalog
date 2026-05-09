@@ -91,4 +91,7 @@ dependencies {
 
     //datastore preferences
     implementation("androidx.datastore:datastore-preferences:1.2.1")
+
+    //logi
+    implementation("io.ktor:ktor-client-logging-jvm:2.3.12")
 }
