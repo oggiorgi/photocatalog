@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.photocatalog.utils.NetworkResult
 
@@ -17,7 +16,7 @@ import com.example.photocatalog.utils.NetworkResult
 @Composable
 fun LoginScreen(
     navController: NavController,
-    viewModel: LoginViewModel = viewModel()
+    viewModel: LoginViewModel  // Убрано значение по умолчанию viewModel()
 ) {
     var username by remember { mutableStateOf("emilys") }
     var password by remember { mutableStateOf("emilyspass") }
