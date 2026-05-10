@@ -39,7 +39,10 @@ fun NavGraph() {
 
         composable("users_list") {
             val viewModel: UsersListViewModel = viewModel(
-                factory = UsersListViewModelFactory(appModule.getUsersUseCase)
+                factory = UsersListViewModelFactory(
+                    appModule.getUsersUseCase,
+                    appModule.logoutUseCase
+                )
             )
             UsersListScreen(
                 navController = navController,

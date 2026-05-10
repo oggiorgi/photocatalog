@@ -22,17 +22,21 @@ class TokenDataStore(private val context: Context) {
             preferences[TOKEN_KEY] = token
         }
     }
-    
-    suspend fun getToken(): String? {
-        return context.dataStore.data.map { preferences ->
-            preferences[TOKEN_KEY]
-        }.firstOrNull()
-    }
-    
+
     suspend fun clearToken() {
+        println("🔴 CLEARING TOKEN")
         context.dataStore.edit { preferences ->
             preferences.remove(TOKEN_KEY)
         }
+        println("✅ TOKEN CLEARED, new token: ${getToken()}")
+    }
+
+    suspend fun getToken(): String? {
+        val token = context.dataStore.data.map { preferences ->
+            preferences[TOKEN_KEY]
+        }.firstOrNull()
+        println("🔵 GET TOKEN: ${if (token != null) "exists (${token.take(20)}...)" else "null"}")
+        return token
     }
     
     fun getTokenFlow(): Flow<String?> {

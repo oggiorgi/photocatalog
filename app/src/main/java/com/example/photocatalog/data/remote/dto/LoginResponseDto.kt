@@ -10,7 +10,7 @@ data class LoginResponseDto(
     val firstName: String,
     val lastName: String,
     val image: String,
-    val accessToken: String  // Было изменено с 'token' на 'accessToken'
+    val accessToken: String
 ) {
     val token: String get() = accessToken  // Вычисляемое свойство для совместимости
 }

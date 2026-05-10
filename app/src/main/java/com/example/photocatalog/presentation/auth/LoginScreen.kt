@@ -28,6 +28,8 @@ fun LoginScreen(
 
     LaunchedEffect(loginState) {
         if (loginState is NetworkResult.Success) {
+            username = ""  // Добавить эту строку
+            password = ""  // Добавить эту строку
             navController.navigate("users_list") {
                 popUpTo("login") { inclusive = true }
             }

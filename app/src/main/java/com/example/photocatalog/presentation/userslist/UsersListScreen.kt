@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,6 +20,10 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.photocatalog.domain.models.User
 import com.example.photocatalog.utils.NetworkResult
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import com.example.photocatalog.di.AppModule
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,16 +32,29 @@ fun UsersListScreen(
     viewModel: UsersListViewModel = viewModel()
 ) {
     val usersState by viewModel.usersState.collectAsState()
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Пользователи") },
                 actions = {
-                    IconButton(onClick = { navController.navigate("login") }) {
+                    // Кнопка выхода - очищает токен и возвращает на экран логина
+                    IconButton(
+                        onClick = {
+                            scope.launch {
+                                viewModel.logout()
+                                viewModel.clearState()
+                                navController.navigate("login") {
+                                    popUpTo("users_list") { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+                    ) {
                         Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = "Home"
+                            imageVector = Icons.Default.Logout,
+                            contentDescription = "Выйти"
                         )
                     }
                 }
