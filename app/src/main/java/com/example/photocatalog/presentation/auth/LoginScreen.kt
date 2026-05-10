@@ -8,15 +8,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.photocatalog.utils.NetworkResult
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     navController: NavController,
-    viewModel: LoginViewModel  // Убрано значение по умолчанию viewModel()
+    viewModel: LoginViewModel
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -32,69 +35,90 @@ fun LoginScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text("Username") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = { viewModel.login(username, password) },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = loginState !is NetworkResult.Loading
-        ) {
-            if (loginState is NetworkResult.Loading) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
-            } else {
-                Text("Login")
-            }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Вход") },
+                )
         }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues) // Учитываем отступы TopAppBar
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            OutlinedTextField(
+                value = username,
+                onValueChange = { username = it },
+                label = { Text("Username") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = loginState !is NetworkResult.Loading
+            )
 
-        when (val state = loginState) {
-            is NetworkResult.Idle -> {
-                // Ничего не делаем, ждем нажатия кнопки
-                // Можно просто вернуть пустой блок или Unit
-            }
+            Spacer(modifier = Modifier.height(8.dp))
 
-            is NetworkResult.Loading -> {
-                CircularProgressIndicator()
-            }
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier.fillMaxWidth(),
+                enabled = loginState !is NetworkResult.Loading
+            )
 
-            is NetworkResult.Success -> {
-                // Логика перехода (обычно через LaunchedEffect)
-                LaunchedEffect(Unit) {
-                    navController.navigate("users_list") {
-                        popUpTo("login") { inclusive = true }
-                    }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { viewModel.login(username, password) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = loginState !is NetworkResult.Loading
+            ) {
+                if (loginState is NetworkResult.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Войти")
                 }
             }
 
-            is NetworkResult.Error -> {
-                // Отображение ошибки
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = state.message, color = MaterialTheme.colorScheme.error)
-                    // Кнопка повторить и т.д.
+            Spacer(modifier = Modifier.height(16.dp))
+
+            when (val state = loginState) {
+                is NetworkResult.Idle -> {
+                    // Ничего не делаем, ждем нажатия кнопки
+                }
+
+                is NetworkResult.Error -> {
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "Ошибка: ${state.message}",
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            TextButton(onClick = { viewModel.login(username, password) }) {
+                                Text("Повторить", color = MaterialTheme.colorScheme.onErrorContainer)
+                            }
+                        }
+                    }
+                }
+
+                is NetworkResult.Success,
+                is NetworkResult.Loading -> {
+                    // Loading обрабатывается внутри кнопки, Success через LaunchedEffect
+                    // Здесь можно оставить пустоту или дополнительный индикатор, если нужно
                 }
             }
         }
