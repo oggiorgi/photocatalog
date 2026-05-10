@@ -18,8 +18,8 @@ fun LoginScreen(
     navController: NavController,
     viewModel: LoginViewModel  // Убрано значение по умолчанию viewModel()
 ) {
-    var username by remember { mutableStateOf("emilys") }
-    var password by remember { mutableStateOf("emilyspass") }
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
 
     val loginState by viewModel.loginState.collectAsState()
 
@@ -71,14 +71,32 @@ fun LoginScreen(
             }
         }
 
-        when (loginState) {
-            is NetworkResult.Error -> {
-                Text(
-                    text = (loginState as NetworkResult.Error).message,
-                    color = MaterialTheme.colorScheme.error
-                )
+        when (val state = loginState) {
+            is NetworkResult.Idle -> {
+                // Ничего не делаем, ждем нажатия кнопки
+                // Можно просто вернуть пустой блок или Unit
             }
-            else -> {}
+
+            is NetworkResult.Loading -> {
+                CircularProgressIndicator()
+            }
+
+            is NetworkResult.Success -> {
+                // Логика перехода (обычно через LaunchedEffect)
+                LaunchedEffect(Unit) {
+                    navController.navigate("users_list") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
+            }
+
+            is NetworkResult.Error -> {
+                // Отображение ошибки
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = state.message, color = MaterialTheme.colorScheme.error)
+                    // Кнопка повторить и т.д.
+                }
+            }
         }
     }
 }

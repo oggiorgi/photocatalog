@@ -91,12 +91,18 @@ fun UserDetailScreen(
         contentAlignment = Alignment.Center
     ) {
         when (userState) {
+            is NetworkResult.Idle -> {
+                // Можно оставить пустым или показать CircularProgressIndicator()
+                // Так как init сразу запускает загрузку, это состояние очень кратковременно
+                CircularProgressIndicator()
+            }
+
             is NetworkResult.Loading -> {
                 CircularProgressIndicator()
             }
 
             is NetworkResult.Success -> {
-                val user = (userState as NetworkResult.Success).data
+                val user = (userState as NetworkResult.Success<User>).data
                 UserDetailContent(
                     user = user,
                     onLogout = {

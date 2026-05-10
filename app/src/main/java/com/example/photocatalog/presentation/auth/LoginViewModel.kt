@@ -14,7 +14,7 @@ class LoginViewModel(
     private val loginUseCase: LoginUseCase
 ) : ViewModel() {
 
-    private val _loginState = MutableStateFlow<NetworkResult<String>>(NetworkResult.Loading)
+    private val _loginState = MutableStateFlow<NetworkResult<String>>(NetworkResult.Idle)
     val loginState: StateFlow<NetworkResult<String>> = _loginState.asStateFlow()
 
     fun login(username: String, password: String) {

@@ -27,7 +27,9 @@ fun UsersListScreen(
         contentAlignment = Alignment.Center
     ) {
         when (usersState) {
+            is NetworkResult.Idle,
             is NetworkResult.Loading -> {
+                // Показываем загрузку и для Idle, и для Loading
                 CircularProgressIndicator()
             }
             
