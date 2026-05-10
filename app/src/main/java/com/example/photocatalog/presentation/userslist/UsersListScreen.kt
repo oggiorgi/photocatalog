@@ -4,10 +4,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -15,42 +19,60 @@ import coil.compose.AsyncImage
 import com.example.photocatalog.domain.models.User
 import com.example.photocatalog.utils.NetworkResult
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UsersListScreen(
     navController: NavController,
     viewModel: UsersListViewModel = viewModel()
 ) {
     val usersState by viewModel.usersState.collectAsState()
-    
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        when (usersState) {
-            is NetworkResult.Idle,
-            is NetworkResult.Loading -> {
-                // Показываем загрузку и для Idle, и для Loading
-                CircularProgressIndicator()
-            }
-            
-            is NetworkResult.Success -> {
-                UserListContent(
-                    users = (usersState as NetworkResult.Success).data,
-                    onUserClick = { user ->
-                        navController.navigate("user_detail/${user.id}")
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Пользователи") },
+                actions = {
+                    IconButton(onClick = { navController.navigate("login") }) {
+                        Icon(
+                            imageVector = Icons.Default.Home,
+                            contentDescription = "Home"
+                        )
                     }
-                )
-            }
-            
-            is NetworkResult.Error -> {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = (usersState as NetworkResult.Error).message,
-                        color = MaterialTheme.colorScheme.error
+                }
+            )
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
+        ) {
+            when (usersState) {
+                is NetworkResult.Idle,
+                is NetworkResult.Loading -> {
+                    CircularProgressIndicator()
+                }
+
+                is NetworkResult.Success -> {
+                    UserListContent(
+                        users = (usersState as NetworkResult.Success<List<User>>).data,
+                        onUserClick = { user ->
+                            navController.navigate("user_detail/${user.id}")
+                        }
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { viewModel.loadUsers() }) {
-                        Text("Retry")
+                }
+
+                is NetworkResult.Error -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = (usersState as NetworkResult.Error).message,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = { viewModel.loadUsers() }) {
+                            Text("Retry")
+                        }
                     }
                 }
             }
@@ -92,7 +114,7 @@ fun UserCard(user: User, onClick: () -> Unit) {
                 contentDescription = "Avatar",
                 modifier = Modifier.size(64.dp)
             )
-            
+
             Column {
                 Text(
                     text = "${user.firstName} ${user.lastName}",
@@ -107,6 +129,84 @@ fun UserCard(user: User, onClick: () -> Unit) {
                     text = user.email,
                     style = MaterialTheme.typography.bodySmall
                 )
+            }
+        }
+    }
+}
+
+// --- Previews ---
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewUserListContent() {
+    val fakeUsers = listOf(
+        User(
+            id = 1,
+            firstName = "John",
+            lastName = "Doe",
+            username = "johnd",
+            email = "john.doe@example.com",
+            image = "https://dummyjson.com/icon/johnd/128"
+        ),
+        User(
+            id = 2,
+            firstName = "Emily",
+            lastName = "Smith",
+            username = "emilys",
+            email = "emily.smith@example.com",
+            image = "https://dummyjson.com/icon/emilys/128"
+        ),
+        User(
+            id = 3,
+            firstName = "Michael",
+            lastName = "Johnson",
+            username = "michaelw",
+            email = "michael.j@example.com",
+            image = "https://dummyjson.com/icon/michaelw/128"
+        )
+    )
+
+    MaterialTheme {
+        Surface {
+            UserListContent(users = fakeUsers, onUserClick = {})
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewUserListLoading() {
+    MaterialTheme {
+        Surface {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewUserListError() {
+    MaterialTheme {
+        Surface {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Failed to load users",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = { }) {
+                        Text("Retry")
+                    }
+                }
             }
         }
     }

@@ -1,10 +1,13 @@
 package com.example.photocatalog.presentation.userdetail
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -73,6 +76,7 @@ class UserDetailViewModelFactory(
 }
 
 // Экран деталей пользователя
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserDetailScreen(
     navController: NavController,
@@ -86,44 +90,60 @@ fun UserDetailScreen(
 
     val userState by viewModel.userState.collectAsState()
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        when (userState) {
-            is NetworkResult.Idle -> {
-                // Можно оставить пустым или показать CircularProgressIndicator()
-                // Так как init сразу запускает загрузку, это состояние очень кратковременно
-                CircularProgressIndicator()
-            }
-
-            is NetworkResult.Loading -> {
-                CircularProgressIndicator()
-            }
-
-            is NetworkResult.Success -> {
-                val user = (userState as NetworkResult.Success<User>).data
-                UserDetailContent(
-                    user = user,
-                    onLogout = {
-                        viewModel.logout()
-                        navController.navigate("login") {
-                            popUpTo("users_list") { inclusive = true }
-                            launchSingleTop = true
-                        }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Детали пользователя") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            contentDescription = "Назад"
+                        )
                     }
-                )
-            }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
+        ) {
+            when (userState) {
+                is NetworkResult.Idle -> {
+                    CircularProgressIndicator()
+                }
 
-            is NetworkResult.Error -> {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = (userState as NetworkResult.Error).message,
-                        color = MaterialTheme.colorScheme.error
+                is NetworkResult.Loading -> {
+                    CircularProgressIndicator()
+                }
+
+                is NetworkResult.Success -> {
+                    val user = (userState as NetworkResult.Success<User>).data
+                    UserDetailContent(
+                        user = user,
+                        onLogout = {
+                            viewModel.logout()
+                            navController.navigate("login") {
+                                popUpTo("users_list") { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = { viewModel.loadUserDetail() }) {
-                        Text("Повторить")
+                }
+
+                is NetworkResult.Error -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = (userState as NetworkResult.Error).message,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = { viewModel.loadUserDetail() }) {
+                            Text("Повторить")
+                        }
                     }
                 }
             }
@@ -160,28 +180,65 @@ fun UserDetailContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "@${user.username}",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            text = user.email,
+            style = MaterialTheme.typography.bodyLarge
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = user.email,
-            style = MaterialTheme.typography.bodyLarge
+            text = "ID: ${user.id}",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+    }
+}
 
-        Button(
-            onClick = onLogout,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error
-            ),
-            modifier = Modifier.fillMaxWidth(0.6f)
-        ) {
-            Text("Выйти")
+// --- Previews ---
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewUserDetailContent() {
+    val fakeUser = User(
+        id = 1,
+        firstName = "Emily",
+        lastName = "Johnson",
+        username = "emilyj",
+        email = "emily.johnson@x.dummyjson.com",
+        image = "https://dummyjson.com/icon/emilyj/128"
+    )
+
+    MaterialTheme {
+        Surface {
+            UserDetailContent(
+                user = fakeUser,
+                onLogout = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewUserDetailError() {
+    MaterialTheme {
+        Surface {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Не удалось загрузить пользователя",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = { }) {
+                        Text("Повторить")
+                    }
+                }
+            }
         }
     }
 }
